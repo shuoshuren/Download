@@ -55,7 +55,7 @@ public class DownloadTask {
         List<ThreadInfo> threads = threadDAO.getThreads(mFileInfo.getUrl());
         Log.i("xc", "threads size=" + threads.size());
         if (threads.size() == 0) { //如果是新的下载，等分分割文件
-            int len = mFileInfo.getLength() / mThreadCount;
+            long len = mFileInfo.getLength() / mThreadCount;
             if(len>0){ //如果文件有确定的长度
                 for (int i = 0; i < mThreadCount; i++) {
                     ThreadInfo threadInfo = new ThreadInfo(i, mFileInfo.getUrl(), len * i, (i + 1) * len - 1, 0);
@@ -143,7 +143,6 @@ public class DownloadTask {
                 }else{
                     connection.setRequestProperty("Range","bytes="+start+"-");
                 }
-
 
                 //通过RandomAccessFile进行随机文件的读写操作
                 File file = new File(DownloadService.DOWNLOAD_PATH, mFileInfo.getFileName());

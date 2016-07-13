@@ -8,15 +8,15 @@ public class ThreadInfo {
 
     private int id;
     private String url;
-    private int start;
-    private int end;
-    private int finished;
+    private long start;
+    private long end;
+    private long finished;
 
     public ThreadInfo() {
 
     }
 
-    public ThreadInfo(int id, String url, int start, int end, int finished) {
+    public ThreadInfo(int id, String url, long start, long end, long finished) {
         this.id = id;
         this.url = url;
         this.start = start;
@@ -40,27 +40,27 @@ public class ThreadInfo {
         this.url = url;
     }
 
-    public int getStart() {
+    public long getStart() {
         return start;
     }
 
-    public void setStart(int start) {
+    public void setStart(long start) {
         this.start = start;
     }
 
-    public int getEnd() {
+    public long getEnd() {
         return end;
     }
 
-    public void setEnd(int end) {
+    public void setEnd(long end) {
         this.end = end;
     }
 
-    public int getFinished() {
+    public long getFinished() {
         return finished;
     }
 
-    public void setFinished(int finished) {
+    public void setFinished(long finished) {
         this.finished = finished;
     }
 
@@ -94,9 +94,9 @@ public class ThreadInfo {
     public int hashCode() {
         int result = id;
         result = 31 * result + (url != null ? url.hashCode() : 0);
-        result = 31 * result + start;
-        result = 31 * result + end;
-        result = 31 * result + finished;
+        result = 31 * result + (int) (start ^ (start >>> 32));
+        result = 31 * result + (int) (end ^ (end >>> 32));
+        result = 31 * result + (int) (finished ^ (finished >>> 32));
         return result;
     }
 }

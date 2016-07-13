@@ -29,7 +29,7 @@ public interface ThreadDAO {
      * @param thread_id
      * @return void
      */
-    public void updateThread(String url, int thread_id, int finished);
+    public void updateThread(String url, int thread_id, long finished);
     /**
      * 查询文件的线程信息
      * @param url

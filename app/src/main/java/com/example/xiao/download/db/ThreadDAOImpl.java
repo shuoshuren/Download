@@ -39,7 +39,7 @@ public class ThreadDAOImpl implements ThreadDAO {
     }
 
     @Override
-    public synchronized void updateThread(String url, int thread_id, int finished) {
+    public synchronized void updateThread(String url, int thread_id, long finished) {
         SQLiteDatabase db = mHelper.getWritableDatabase();
         db.execSQL("update thread_info set finished = ? where url = ? and thread_id = ?",
                 new Object[]{finished, url, thread_id});
@@ -58,9 +58,9 @@ public class ThreadDAOImpl implements ThreadDAO {
             ThreadInfo threadInfo = new ThreadInfo();
             threadInfo.setId(cursor.getInt(cursor.getColumnIndex("thread_id")));
             threadInfo.setUrl(cursor.getString(cursor.getColumnIndex("url")));
-            threadInfo.setStart(cursor.getInt(cursor.getColumnIndex("start")));
-            threadInfo.setEnd(cursor.getInt(cursor.getColumnIndex("end")));
-            threadInfo.setFinished(cursor.getInt(cursor.getColumnIndex("finished")));
+            threadInfo.setStart(cursor.getLong(cursor.getColumnIndex("start")));
+            threadInfo.setEnd(cursor.getLong(cursor.getColumnIndex("end")));
+            threadInfo.setFinished(cursor.getLong(cursor.getColumnIndex("finished")));
             list.add(threadInfo);
         }
         cursor.close();
