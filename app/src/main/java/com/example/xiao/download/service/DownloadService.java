@@ -18,9 +18,12 @@ import java.net.URL;
 import java.util.HashMap;
 
 /**
+ * 下载的service
  * Created by xiao on 2016/7/11.
  */
 public class DownloadService extends Service {
+    private String TAG = "DownloadService";
+    //文件下载的存放目录
     public static final String DOWNLOAD_PATH = Environment
             .getExternalStorageDirectory().getAbsolutePath() + "/downloads/";
     public static final String ACTION_START = "ACTION_START";
@@ -29,10 +32,9 @@ public class DownloadService extends Service {
     public static final String ACTION_FINISHED = "ACTION_FINISHED";
     public static final String ACTION_RESTART = "ACTION_RESTART";
     public static final int MSG_INIT = 0;
-    private String TAG = "DownloadService";
+
+    //管理下载Task的HashMap
     private HashMap<Long,DownloadTask> tasks = new HashMap<>();
-
-
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -40,10 +42,18 @@ public class DownloadService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
+    /**
+     * 开始一个新的文件下载
+     * @param fileInfo
+     */
     public void startDownload(FileInfo fileInfo){
         new InitThread(fileInfo).start();
     }
 
+    /**
+     * 停止该文件的下载
+     * @param fileInfo
+     */
     public void stopDownload(FileInfo fileInfo){
         DownloadTask task = tasks.get(fileInfo.getId());
         if(task!=null){
@@ -51,6 +61,9 @@ public class DownloadService extends Service {
         }
     }
 
+    /**
+     * 停止所有的下载
+     */
     public void stopAllDownload(){
         for(DownloadTask task : tasks.values()){
             if(task != null){
@@ -59,6 +72,10 @@ public class DownloadService extends Service {
         }
     }
 
+    /**
+     * 重新开始下载，从之前暂停的地方开始下载
+     * @param fileInfo
+     */
     public void restartDownload(FileInfo fileInfo){
         DownloadTask task = tasks.get(fileInfo.getId());
         if(task!=null){
@@ -68,12 +85,20 @@ public class DownloadService extends Service {
         }
     }
 
+    /**
+     * 文件下载完成后，根据下载文件的id删除对应的DownloadTask
+     * @param fileId
+     */
     public void downloadFinished(long fileId){
         if(tasks.containsKey(fileId)){
             tasks.remove(fileId);
         }
     }
 
+    /**
+     * 初始化文件的线程
+     * 主要是得到下载文件的长度和创建文件夹目录和文件
+     */
     private class InitThread extends Thread{
         private FileInfo mFileInfo = null;
 
@@ -131,7 +156,7 @@ public class DownloadService extends Service {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what){
-                case MSG_INIT:
+                case MSG_INIT: //主要用于初始化DownloadTask，并添加到tasks中进行管理
                     FileInfo fileInfo = (FileInfo) msg.obj;
                     DownloadTask task = new DownloadTask(DownloadService.this,fileInfo,3);
                     task.download();

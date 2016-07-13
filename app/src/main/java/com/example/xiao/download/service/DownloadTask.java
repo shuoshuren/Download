@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 下载文件的Task
  * Created by xiao on 2016/7/11.
  */
 public class DownloadTask {
@@ -32,35 +33,40 @@ public class DownloadTask {
     private List<DownloadThread> mDownloadThreadList = null;
     public boolean isPause = false;
 
+    /**
+     *
+     * @param context 上下文
+     * @param fileInfo 下载文件的信息
+     * @param threadCount 下载线程的个数
+     */
     public DownloadTask(Context context, FileInfo fileInfo, int threadCount) {
         this.mContext = context;
         this.mFileInfo = fileInfo;
         this.mThreadCount = threadCount;
         threadDAO = new ThreadDAOImpl(context);
         fileInfoDAO = new FileInfoDAOImpl(context);
-
-
     }
 
     public void download() {
         Log.i("xc", "downloadTask download");
         List<ThreadInfo> threads = threadDAO.getThreads(mFileInfo.getUrl());
         Log.i("xc", "threads size=" + threads.size());
-        int len = mFileInfo.getLength() / mThreadCount;
-        if (threads.size() == 0) {
+        if (threads.size() == 0) { //如果是新的下载，等分分割文件
+            int len = mFileInfo.getLength() / mThreadCount;
             for (int i = 0; i < mThreadCount; i++) {
                 ThreadInfo threadInfo = new ThreadInfo(i, mFileInfo.getUrl(), len * i, (i + 1) * len - 1, 0);
-                if (mThreadCount - 1 == i) {
+                if (mThreadCount - 1 == i) { //如果文件长度不是等分的，则将最后一个线程的结束设置为文件的长度
                     threadInfo.setEnd(mFileInfo.getLength());
                 }
                 threads.add(threadInfo);
-                threadDAO.insertThread(threadInfo);
+                threadDAO.insertThread(threadInfo); //向数据库中插入线程信息
                 if (!fileInfoDAO.isExists(mFileInfo.getUrl(), mFileInfo.getId())) {
-                    fileInfoDAO.insertFileInfo(mFileInfo);
+                    fileInfoDAO.insertFileInfo(mFileInfo); //向数据库中插入下载文件的信息
                 }
             }
         }
 
+        //根据线程信息初始化下载线程，并添加到mDownloadThreadList中进行管理
         mDownloadThreadList = new ArrayList<>();
         for (ThreadInfo info : threads) {
             DownloadThread downloadThread = new DownloadThread(info);
@@ -100,15 +106,17 @@ public class DownloadTask {
                 connection.setRequestMethod("GET");
                 connection.setConnectTimeout(5000);
 
+                //设置下载的开始和结束位置，向请求头中设置参数，服务器就会从设置的开始和结束位置传输文件
                 long start = mThreadInfo.getStart() + mThreadInfo.getFinished();
-                Log.i("xc","start="+start);
                 long end = mThreadInfo.getEnd();
                 connection.setRequestProperty("Range", "bytes=" + start + "-" + end);
+
+                //通过RandomAccessFile进行随机文件的读写操作
                 File file = new File(DownloadService.DOWNLOAD_PATH, mFileInfo.getFileName());
                 raf = new RandomAccessFile(file, "rwd");
-                Log.i("xc", "start="+start+" mFinished=" + mThreadInfo.getFinished());
                 raf.seek(start);
 
+                //通过intent发送进度通知的broadcast
                 Intent intent = new Intent();
                 intent.setAction(DownloadService.ACTION_UPDATE);
 
@@ -117,7 +125,7 @@ public class DownloadTask {
                 int len = -1;
                 long time = System.currentTimeMillis();
                 while ((len = inputStream.read(buffer)) != -1) {
-                    // 在下载暂停时，保存下载进度
+                    // 在下载暂停时，保存下载进度，退出下载线程
                     if (isPause) {
                         Log.i("xc", "pause finish=" + mThreadInfo.getFinished());
                         threadDAO.updateThread(mThreadInfo.getUrl(), mThreadInfo.getId(), mThreadInfo.getFinished());
@@ -130,15 +138,15 @@ public class DownloadTask {
                     if (System.currentTimeMillis() - time >= 1000) {
                         time = System.currentTimeMillis();
                         int f = mThreadInfo.getFinished() * 100 / mFileInfo.getLength();
-                        if (f > mFileInfo.getFinished()) {
-//                            Log.i("xc", "当前线程" + currentThread().getId() + "已完成= " + mFinished + " 总共= " + mFileInfo.getLength());
+//                        if (f > mFileInfo.getFinished()) {
                             intent.putExtra("finished", f);
                             intent.putExtra("id", mFileInfo.getId());
                             intent.putExtra("threadId",currentThread().getId());
                             mContext.sendBroadcast(intent);
-                        }
+//                        }
                     }
                 }
+                //文件下载完成
                 Log.i("xc","完成了 ThreadInfo="+mThreadInfo.toString());
                 setFinished(true);
                 checkAllFinished();
@@ -180,6 +188,9 @@ public class DownloadTask {
         }
     }
 
+    /**
+     * 判断下载该文件的所有线程是否下载完成,如果下载完成就发送下载完成的广播和删除对应数据库中的信息
+     */
     public void checkAllFinished() {
         boolean allFinished = true;
         for (DownloadThread thread : mDownloadThreadList) {
