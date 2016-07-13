@@ -31,6 +31,7 @@ public class DownloadService extends Service {
     public static final String ACTION_UPDATE = "ACTION_UPDATE";
     public static final String ACTION_FINISHED = "ACTION_FINISHED";
     public static final String ACTION_RESTART = "ACTION_RESTART";
+    public static final String ACTION_FILE_NOT_FIND = "ACTION_FILE_NOT_FIND";
     public static final int MSG_INIT = 0;
 
     //管理下载Task的HashMap
@@ -45,9 +46,10 @@ public class DownloadService extends Service {
     /**
      * 开始一个新的文件下载
      * @param fileInfo
+     * @param isFirst
      */
-    public void startDownload(FileInfo fileInfo){
-        new InitThread(fileInfo).start();
+    public void startDownload(FileInfo fileInfo,boolean isFirst){
+        new InitThread(fileInfo,isFirst).start();
     }
 
     /**
@@ -101,9 +103,11 @@ public class DownloadService extends Service {
      */
     private class InitThread extends Thread{
         private FileInfo mFileInfo = null;
+        private boolean isFirst;
 
-        public InitThread(FileInfo fileInfo){
+        public InitThread(FileInfo fileInfo,boolean isFirst){
             this.mFileInfo = fileInfo;
+            this.isFirst = isFirst;
         }
 
         @Override
@@ -117,9 +121,11 @@ public class DownloadService extends Service {
                 connection.setConnectTimeout(5000);
                 connection.setRequestMethod("GET");
                 int length = -1;
-                if(connection.getResponseCode() == HttpURLConnection.HTTP_OK){
+//                if(connection.getResponseCode() == HttpURLConnection.HTTP_OK){
                     length = connection.getContentLength();
-                }
+//                }
+                Log.i("xc","responseCode="+connection.getResponseCode());
+                Log.i("xc", "length=" + length);
                 if(length <=0){
                     return;
                 }
@@ -129,9 +135,13 @@ public class DownloadService extends Service {
                 }
                 // 在本地创建文件
                 File file = new File(dir, mFileInfo.getFileName());
+                if(!isFirst){
+                    if(!checkFileExists()){
+                        return;
+                    }
+                }
                 raf = new RandomAccessFile(file, "rwd");
                 // 设置文件长度
-                Log.i("xc", "length=" + length);
                 raf.setLength(length);
                 mFileInfo.setLength(length);
                 mHandler.obtainMessage(MSG_INIT,mFileInfo).sendToTarget();
@@ -149,6 +159,23 @@ public class DownloadService extends Service {
                     e.printStackTrace();
                 }
             }
+        }
+
+
+        /**
+         * 判断文件是否存在
+         */
+        private boolean checkFileExists() {
+            File file = new File(DownloadService.DOWNLOAD_PATH, mFileInfo.getFileName());
+            if(!file.exists()){
+                Intent intent = new Intent();
+                intent.setAction(DownloadService.ACTION_FILE_NOT_FIND);
+                intent.putExtra("id",mFileInfo.getId());
+                intent.putExtra("url",mFileInfo.getUrl());
+                DownloadService.this.sendBroadcast(intent);
+                return false;
+            }
+            return true;
         }
     }
 
@@ -183,4 +210,6 @@ public class DownloadService extends Service {
             return DownloadService.this;
         }
     }
+
+
 }

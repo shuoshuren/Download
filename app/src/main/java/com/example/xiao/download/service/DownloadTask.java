@@ -49,6 +49,9 @@ public class DownloadTask {
 
     public void download() {
         Log.i("xc", "downloadTask download");
+        if(!checkFileExists()){
+            return;
+        }
         List<ThreadInfo> threads = threadDAO.getThreads(mFileInfo.getUrl());
         Log.i("xc", "threads size=" + threads.size());
         if (threads.size() == 0) { //如果是新的下载，等分分割文件
@@ -74,6 +77,22 @@ public class DownloadTask {
             downloadThread.start();
             mDownloadThreadList.add(downloadThread);
         }
+    }
+
+    /**
+     * 判断文件是否存在
+     */
+    private boolean checkFileExists() {
+        File file = new File(DownloadService.DOWNLOAD_PATH, mFileInfo.getFileName());
+        if(!file.exists()){
+            Intent intent = new Intent();
+            intent.setAction(DownloadService.ACTION_FILE_NOT_FIND);
+            intent.putExtra("id",mFileInfo.getId());
+            intent.putExtra("url",mFileInfo.getUrl());
+            mContext.sendBroadcast(intent);
+            return false;
+        }
+        return true;
     }
 
     //下载线程

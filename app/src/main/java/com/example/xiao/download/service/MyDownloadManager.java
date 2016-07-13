@@ -11,6 +11,8 @@ import android.util.Log;
 
 import com.example.xiao.download.db.FileInfoDAO;
 import com.example.xiao.download.db.FileInfoDAOImpl;
+import com.example.xiao.download.db.ThreadDAO;
+import com.example.xiao.download.db.ThreadDAOImpl;
 import com.example.xiao.download.entity.FileInfo;
 
 import java.util.List;
@@ -29,6 +31,7 @@ public class MyDownloadManager {
     private boolean isDownloadUnFinished = false; //是否自动开始以前的未完成的任务
 
     private FileInfoDAO fileInfoDao;
+    private ThreadDAO threadDao;
 
     public boolean isDownloadUnFinished() {
         return isDownloadUnFinished;
@@ -63,6 +66,7 @@ public class MyDownloadManager {
     private MyDownloadManager(Context context){
         this.mContext = context;
         fileInfoDao = new FileInfoDAOImpl(context);
+        threadDao = new ThreadDAOImpl(context);
         initDownloadService();
 
     }
@@ -84,6 +88,7 @@ public class MyDownloadManager {
         IntentFilter filter = new IntentFilter();
         filter.addAction(DownloadService.ACTION_UPDATE);
         filter.addAction(DownloadService.ACTION_FINISHED);
+        filter.addAction(DownloadService.ACTION_FILE_NOT_FIND);
         mContext.registerReceiver(mReceiver, filter);
 
     }
@@ -116,7 +121,9 @@ public class MyDownloadManager {
         List<FileInfo> fileList =  fileInfoDao.getAllFileInfo();
         Log.i("xc","downloadUnFinished size="+fileList.size());
         for(FileInfo fileInfo:fileList){
-            startDownload(fileInfo);
+            if(downloadService != null){
+                downloadService.startDownload(fileInfo,false);
+            }
         }
     }
 
@@ -127,7 +134,7 @@ public class MyDownloadManager {
     public void startDownload(FileInfo fileInfo){
         if(downloadService != null){
             Log.i("xc","开始下载");
-            downloadService.startDownload(fileInfo);
+            downloadService.startDownload(fileInfo,true);
         }
     }
 
@@ -177,6 +184,19 @@ public class MyDownloadManager {
                 if(downloadService!=null){
                     downloadService.downloadFinished(fileId);
                 }
+            }else if(action.equals(DownloadService.ACTION_FILE_NOT_FIND)){
+                long fileId = intent.getLongExtra("id",-1);
+                String url = intent.getStringExtra("url");
+                if(listener!= null){
+                    listener.onFileNotFind(fileId);
+                }
+
+                if(fileInfoDao.isExists(url,fileId)){
+                    fileInfoDao.deleteFileInfo(url);
+                }
+                if(threadDao.getThreads(url).size()>0){
+                    threadDao.deleteThread(url);
+                }
             }
         }
     };
@@ -199,6 +219,12 @@ public class MyDownloadManager {
          * @param fileId 下载文件的id
          */
         void onFinished(long fileId);
+
+        /**
+         * 文件不存在
+         * @param fileId
+         */
+        void onFileNotFind(long fileId);
     }
 
     private DownloadListener listener;

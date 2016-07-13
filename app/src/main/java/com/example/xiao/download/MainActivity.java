@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private FileInfo youdaoApkInfo = null;
     private MyDownloadManager manager;
 
-    private static final String local_author =  "http://219.153.20.235:20000";
+    private static final String local_author =  "http://192.168.0.114:20000";
     private static final String url_downPApk = local_author + "/apk/downloads" + "?type=apk";
     private static final String url_downBundle = local_author+"/apk/downloads" + "?type=attach";
 
@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         youdaoApkInfo = new FileInfo(System.currentTimeMillis(),youdao_apk_url,"youdao.apk",0,0);
 
         manager = MyDownloadManager.getInstance(mContext);
-//        manager.setDownloadUnFinished(true);
+        manager.setDownloadUnFinished(true);
         initView();
         initEvent();
 
@@ -68,6 +68,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Log.i("xc","已完成 fileId="+fileId);
                 Toast.makeText(mContext,"已经完成",Toast.LENGTH_LONG).show();
             }
+
+            @Override
+            public void onFileNotFind(long fileId){
+                Log.i("xc","文件不存在");
+                Toast.makeText(mContext,"文件不存在",Toast.LENGTH_LONG).show();
+            }
         });
     }
 
@@ -78,21 +84,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.start:
 //                manager.startDownload(apkInfo);
 //                manager.startDownload(bundleInfo);
-                manager.startDownload(logoInfo);
+//                manager.startDownload(logoInfo);
                 manager.startDownload(youdaoApkInfo);
                 break;
 
             case R.id.stop:
 //                manager.stopDownload(apkInfo);
 //                manager.stopDownload(bundleInfo);
-                manager.stopDownload(logoInfo);
+//                manager.stopDownload(logoInfo);
                 manager.stopDownload(youdaoApkInfo);
                 break;
 
             case R.id.restart:
 //                manager.restartDownload(apkInfo);
 //                manager.restartDownload(bundleInfo);
-                manager.restartDownload(logoInfo);
+//                manager.restartDownload(logoInfo);
                 manager.restartDownload(youdaoApkInfo);
                 break;
             default:
