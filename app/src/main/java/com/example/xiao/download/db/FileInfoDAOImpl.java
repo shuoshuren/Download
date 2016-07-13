@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 下载文件的DAO层接口的实现
  * Created by xiao on 2016/7/12.
  */
 public class FileInfoDAOImpl implements FileInfoDAO {

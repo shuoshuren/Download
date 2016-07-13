@@ -1,6 +1,7 @@
 package com.example.xiao.download.entity;
 
 /**
+ * 下载文件线程的信息
  * Created by xiao on 2016/7/11.
  */
 public class ThreadInfo {

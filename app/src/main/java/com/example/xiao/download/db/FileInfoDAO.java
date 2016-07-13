@@ -5,6 +5,7 @@ import com.example.xiao.download.entity.FileInfo;
 import java.util.List;
 
 /**
+ * 下载文件的DAO层接口
  * Created by xiao on 2016/7/12.
  */
 public interface FileInfoDAO {

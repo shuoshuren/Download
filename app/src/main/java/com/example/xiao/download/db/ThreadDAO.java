@@ -5,6 +5,7 @@ import com.example.xiao.download.entity.ThreadInfo;
 import java.util.List;
 
 /**
+ * 下载线程的DAO层接口
  * Created by xiao on 2016/7/11.
  */
 public interface ThreadDAO {
