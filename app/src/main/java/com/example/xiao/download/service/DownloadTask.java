@@ -56,17 +56,27 @@ public class DownloadTask {
         Log.i("xc", "threads size=" + threads.size());
         if (threads.size() == 0) { //如果是新的下载，等分分割文件
             int len = mFileInfo.getLength() / mThreadCount;
-            for (int i = 0; i < mThreadCount; i++) {
-                ThreadInfo threadInfo = new ThreadInfo(i, mFileInfo.getUrl(), len * i, (i + 1) * len - 1, 0);
-                if (mThreadCount - 1 == i) { //如果文件长度不是等分的，则将最后一个线程的结束设置为文件的长度
-                    threadInfo.setEnd(mFileInfo.getLength());
+            if(len>0){ //如果文件有确定的长度
+                for (int i = 0; i < mThreadCount; i++) {
+                    ThreadInfo threadInfo = new ThreadInfo(i, mFileInfo.getUrl(), len * i, (i + 1) * len - 1, 0);
+                    if (mThreadCount - 1 == i) { //如果文件长度不是等分的，则将最后一个线程的结束设置为文件的长度
+                        threadInfo.setEnd(mFileInfo.getLength());
+                    }
+                    threads.add(threadInfo);
+                    threadDAO.insertThread(threadInfo); //向数据库中插入线程信息
+                    if (!fileInfoDAO.isExists(mFileInfo.getUrl(), mFileInfo.getId())) {
+                        fileInfoDAO.insertFileInfo(mFileInfo); //向数据库中插入下载文件的信息
+                    }
                 }
+            }else{ //如果文件长度未知
+                ThreadInfo threadInfo = new ThreadInfo(0, mFileInfo.getUrl(), 0, 0, 0);
                 threads.add(threadInfo);
                 threadDAO.insertThread(threadInfo); //向数据库中插入线程信息
                 if (!fileInfoDAO.isExists(mFileInfo.getUrl(), mFileInfo.getId())) {
                     fileInfoDAO.insertFileInfo(mFileInfo); //向数据库中插入下载文件的信息
                 }
             }
+
         }
 
         //根据线程信息初始化下载线程，并添加到mDownloadThreadList中进行管理
@@ -128,7 +138,12 @@ public class DownloadTask {
                 //设置下载的开始和结束位置，向请求头中设置参数，服务器就会从设置的开始和结束位置传输文件
                 long start = mThreadInfo.getStart() + mThreadInfo.getFinished();
                 long end = mThreadInfo.getEnd();
-                connection.setRequestProperty("Range", "bytes=" + start + "-" + end);
+                if(end>0){
+                    connection.setRequestProperty("Range", "bytes=" + start + "-" + end);
+                }else{
+                    connection.setRequestProperty("Range","bytes="+start+"-");
+                }
+
 
                 //通过RandomAccessFile进行随机文件的读写操作
                 File file = new File(DownloadService.DOWNLOAD_PATH, mFileInfo.getFileName());
@@ -156,7 +171,7 @@ public class DownloadTask {
                     //更新进度
                     if (System.currentTimeMillis() - time >= 1000) {
                         time = System.currentTimeMillis();
-                        int f = mThreadInfo.getFinished() * 100 / mFileInfo.getLength();
+                        long f = mThreadInfo.getFinished();
 //                        if (f > mFileInfo.getFinished()) {
                             intent.putExtra("finished", f);
                             intent.putExtra("id", mFileInfo.getId());

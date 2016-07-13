@@ -29,7 +29,7 @@ public interface FileInfoDAO {
      * @param file_id
      * @return void
      */
-    public void updateFileInfo(String url, int file_id, int finished);
+    public void updateFileInfo(String url, long file_id, long finished);
     /**
      * 查询文件
      * @param url

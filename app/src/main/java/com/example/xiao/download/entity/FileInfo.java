@@ -14,9 +14,9 @@ public class FileInfo implements Serializable{
 
     private String fileName; // 下载文件名
 
-    private int length; // 文件长度
+    private long length; // 文件长度
 
-    private int finished; // 已完成的
+    private long finished; // 已完成的
 
     public FileInfo() {
     }
@@ -61,19 +61,19 @@ public class FileInfo implements Serializable{
         this.fileName = fileName;
     }
 
-    public int getLength() {
+    public long getLength() {
         return length;
     }
 
-    public void setLength(int length) {
+    public void setLength(long length) {
         this.length = length;
     }
 
-    public int getFinished() {
+    public long getFinished() {
         return finished;
     }
 
-    public void setFinished(int finished) {
+    public void setFinished(long finished) {
         this.finished = finished;
     }
 
@@ -108,8 +108,8 @@ public class FileInfo implements Serializable{
         int result = (int) (id ^ (id >>> 32));
         result = 31 * result + (url != null ? url.hashCode() : 0);
         result = 31 * result + (fileName != null ? fileName.hashCode() : 0);
-        result = 31 * result + length;
-        result = 31 * result + finished;
+        result = 31 * result + (int) (length ^ (length >>> 32));
+        result = 31 * result + (int) (finished ^ (finished >>> 32));
         return result;
     }
 }

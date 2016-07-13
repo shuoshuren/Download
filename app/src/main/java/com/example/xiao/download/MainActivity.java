@@ -58,8 +58,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         restartButton.setOnClickListener(this);
 
         manager.setDownloadListener(new MyDownloadManager.DownloadListener() {
+
             @Override
-            public void onProgressUpdate(long fileId,long threadId,int progress) {
+            public void onStart(long fileId,long length){
+                Log.i("xc","fileId="+fileId+" 长度="+length);
+            }
+
+            @Override
+            public void onProgressUpdate(long fileId,long threadId,long progress) {
                 Log.i("xc","进度 fileid="+fileId +" 线程="+threadId +" progress="+progress);
             }
 
@@ -82,24 +88,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.start:
-//                manager.startDownload(apkInfo);
+                manager.startDownload(apkInfo);
 //                manager.startDownload(bundleInfo);
 //                manager.startDownload(logoInfo);
-                manager.startDownload(youdaoApkInfo);
+//                manager.startDownload(youdaoApkInfo);
                 break;
 
             case R.id.stop:
-//                manager.stopDownload(apkInfo);
+                manager.stopDownload(apkInfo);
 //                manager.stopDownload(bundleInfo);
 //                manager.stopDownload(logoInfo);
-                manager.stopDownload(youdaoApkInfo);
+//                manager.stopDownload(youdaoApkInfo);
                 break;
 
             case R.id.restart:
-//                manager.restartDownload(apkInfo);
+                manager.restartDownload(apkInfo);
 //                manager.restartDownload(bundleInfo);
 //                manager.restartDownload(logoInfo);
-                manager.restartDownload(youdaoApkInfo);
+//                manager.restartDownload(youdaoApkInfo);
                 break;
             default:
                 break;

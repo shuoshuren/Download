@@ -39,7 +39,7 @@ public class FileInfoDAOImpl implements FileInfoDAO {
     }
 
     @Override
-    public synchronized void updateFileInfo(String url, int file_id, int finished) {
+    public synchronized void updateFileInfo(String url, long file_id, long finished) {
         SQLiteDatabase db = mHelper.getWritableDatabase();
         db.execSQL("update file_info set finished = ? where url = ? and file_id = ?",
                 new Object[]{finished, url, file_id});
@@ -57,8 +57,8 @@ public class FileInfoDAOImpl implements FileInfoDAO {
             fileInfo.setId(cursor.getLong(cursor.getColumnIndex("file_id")));
             fileInfo.setUrl(cursor.getString(cursor.getColumnIndex("url")));
             fileInfo.setFileName(cursor.getString(cursor.getColumnIndex("file_name")));
-            fileInfo.setLength(cursor.getInt(cursor.getColumnIndex("length")));
-            fileInfo.setFinished(cursor.getInt(cursor.getColumnIndex("finished")));
+            fileInfo.setLength(cursor.getLong(cursor.getColumnIndex("length")));
+            fileInfo.setFinished(cursor.getLong(cursor.getColumnIndex("finished")));
             list.add(fileInfo);
         }
         cursor.close();
@@ -77,8 +77,8 @@ public class FileInfoDAOImpl implements FileInfoDAO {
             fileInfo.setId(cursor.getLong(cursor.getColumnIndex("file_id")));
             fileInfo.setUrl(cursor.getString(cursor.getColumnIndex("url")));
             fileInfo.setFileName(cursor.getString(cursor.getColumnIndex("file_name")));
-            fileInfo.setLength(cursor.getInt(cursor.getColumnIndex("length")));
-            fileInfo.setFinished(cursor.getInt(cursor.getColumnIndex("finished")));
+            fileInfo.setLength(cursor.getLong(cursor.getColumnIndex("length")));
+            fileInfo.setFinished(cursor.getLong(cursor.getColumnIndex("finished")));
             list.add(fileInfo);
         }
         cursor.close();

@@ -86,6 +86,7 @@ public class MyDownloadManager {
 
         // 注册广播接收器
         IntentFilter filter = new IntentFilter();
+        filter.addAction(DownloadService.ACTION_START);
         filter.addAction(DownloadService.ACTION_UPDATE);
         filter.addAction(DownloadService.ACTION_FINISHED);
         filter.addAction(DownloadService.ACTION_FILE_NOT_FIND);
@@ -168,9 +169,16 @@ public class MyDownloadManager {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action  = intent.getAction();
-            if(action.equals(DownloadService.ACTION_UPDATE)){
+            if(action.equals(DownloadService.ACTION_START)){
                 long fileId = intent.getLongExtra("id", -1);
-                int progress =  intent.getIntExtra("finished", 0);
+                long length = intent.getLongExtra("length",-1);
+                if(listener != null){
+                    listener.onStart(fileId,length);
+                }
+
+            } else if(action.equals(DownloadService.ACTION_UPDATE)){
+                long fileId = intent.getLongExtra("id", -1);
+                long progress =  intent.getLongExtra("finished", 0);
                 long threadId = intent.getLongExtra("threadId",-1);
                 if(listener != null){
                     listener.onProgressUpdate(fileId,threadId,progress);
@@ -206,13 +214,15 @@ public class MyDownloadManager {
      */
     public interface DownloadListener{
 
+        void onStart(long fileId,long length);
+
         /**
          * 当进度变化的时候
          * @param fileId 文件的id
          * @param threadId 下载的线程的id
          * @param progress 当前线程的进度
          */
-        void onProgressUpdate(long fileId,long threadId,int progress);
+        void onProgressUpdate(long fileId,long threadId,long progress);
 
         /**
          * 当文件下载完成后

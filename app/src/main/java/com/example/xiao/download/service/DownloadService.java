@@ -1,6 +1,7 @@
 package com.example.xiao.download.service;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Environment;
@@ -22,6 +23,7 @@ import java.util.HashMap;
  * Created by xiao on 2016/7/11.
  */
 public class DownloadService extends Service {
+    private Context mContext;
     private String TAG = "DownloadService";
     //文件下载的存放目录
     public static final String DOWNLOAD_PATH = Environment
@@ -36,6 +38,12 @@ public class DownloadService extends Service {
 
     //管理下载Task的HashMap
     private HashMap<Long,DownloadTask> tasks = new HashMap<>();
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        this.mContext = DownloadService.this;
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -120,13 +128,16 @@ public class DownloadService extends Service {
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setConnectTimeout(5000);
                 connection.setRequestMethod("GET");
-                int length = -1;
+                long length = -1;
 //                if(connection.getResponseCode() == HttpURLConnection.HTTP_OK){
                     length = connection.getContentLength();
 //                }
                 Log.i("xc","responseCode="+connection.getResponseCode());
                 Log.i("xc", "length=" + length);
-                if(length <=0){
+
+                sendFileLength(length);
+
+                if(length ==0){ //如果文件长度为0
                     return;
                 }
                 File dir = new File(DOWNLOAD_PATH);
@@ -135,14 +146,16 @@ public class DownloadService extends Service {
                 }
                 // 在本地创建文件
                 File file = new File(dir, mFileInfo.getFileName());
-                if(!isFirst){
-                    if(!checkFileExists()){
+                if(!isFirst){ // 如果是下载以前的未完成的文件
+                    if(!checkFileExists()){ //如果文件不存在
                         return;
                     }
                 }
                 raf = new RandomAccessFile(file, "rwd");
-                // 设置文件长度
-                raf.setLength(length);
+//                // 如果文件长度已知，设置文件长度
+                if(length>0){
+                    raf.setLength(length);
+                }
                 mFileInfo.setLength(length);
                 mHandler.obtainMessage(MSG_INIT,mFileInfo).sendToTarget();
             }catch(Exception e){
@@ -159,6 +172,18 @@ public class DownloadService extends Service {
                     e.printStackTrace();
                 }
             }
+        }
+
+        /**
+         * 发送文件长度的广播
+         * @param length
+         */
+        private void sendFileLength(long length) {
+            Intent intent  = new Intent();
+            intent.setAction(DownloadService.ACTION_START);
+            intent.putExtra("id",mFileInfo.getId());
+            intent.putExtra("length",length);
+            mContext.sendBroadcast(intent);
         }
 
 

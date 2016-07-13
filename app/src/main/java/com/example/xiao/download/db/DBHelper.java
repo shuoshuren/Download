@@ -17,7 +17,7 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final String SQL_DROP_THREAD_INFO = "drop table if exists thread_info";
 
     private static final String SQL_CREATE_FILE_INFO = "create table file_info(_id integer primary key autoincrement,"+
-            "file_id integer, url text,file_name text,length integer,finished integer)";
+            "file_id integer, url text,file_name text,length long,finished long)";
 
     private static final String SQL_DROP_FILE_INFO = "drop table if exists thread_info";
 
