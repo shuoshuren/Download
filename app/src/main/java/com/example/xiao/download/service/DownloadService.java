@@ -11,7 +11,6 @@ import android.os.Message;
 import android.util.Log;
 
 import com.example.xiao.download.entity.FileInfo;
-import com.example.xiao.download.util.PathUtil;
 
 import java.io.File;
 import java.io.RandomAccessFile;
@@ -46,7 +45,6 @@ public class DownloadService extends Service {
     public void onCreate() {
         super.onCreate();
         this.mContext = DownloadService.this;
-        this.downloadPath = PathUtil.getDownloadPath(mContext);
     }
 
     @Override
@@ -166,7 +164,7 @@ public class DownloadService extends Service {
                 if(length ==0){ //如果文件长度为0
                     return;
                 }
-                File dir = new File(downloadPath);
+                File dir = new File(mFileInfo.getFilePath());
                 if (!dir.exists()) {
                     dir.mkdir();
                 }

@@ -16,7 +16,6 @@ import com.example.xiao.download.db.FileInfoDAOImpl;
 import com.example.xiao.download.db.ThreadDAO;
 import com.example.xiao.download.db.ThreadDAOImpl;
 import com.example.xiao.download.entity.FileInfo;
-import com.example.xiao.download.util.PathUtil;
 
 import java.util.List;
 
@@ -203,25 +202,6 @@ public class MyDownloadManager {
         return null;
     }
 
-    /**
-     * 设置下载文件的路径
-     *
-     * @param context
-     * @param downloadPath
-     */
-    public static void setDownloadPath(Context context,String downloadPath) {
-        PathUtil.setDownloadPath(context,downloadPath);
-    }
-
-    /**
-     * 得到下载文件路径
-     *
-     * @param context
-     * @return
-     */
-    public static String getDownloadPath(Context context) {
-        return PathUtil.getDownloadPath(context);
-    }
 
     /**
      * 接收广播

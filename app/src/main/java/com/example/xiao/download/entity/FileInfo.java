@@ -12,6 +12,8 @@ public class FileInfo implements Serializable{
 
     private String url; // 下载的路径
 
+    private String filePath;// 下载文件的目录
+
     private String fileName; // 下载文件名
 
     private long length; // 文件长度
@@ -21,20 +23,20 @@ public class FileInfo implements Serializable{
     public FileInfo() {
     }
 
-    public FileInfo(long id, String url, String fileName, int length, int finished) {
+    public FileInfo(long id, String url, String filePath, String fileName, long length, long finished) {
         this.id = id;
         this.url = url;
+        this.filePath = filePath;
         this.fileName = fileName;
         this.length = length;
         this.finished = finished;
     }
 
-    public FileInfo(String url,String fileName){
-//        this.id =
+    public FileInfo(long id, String url, String filePath, String fileName) {
+        this.id = id;
         this.url = url;
+        this.filePath = filePath;
         this.fileName = fileName;
-        this.length = 0;
-        this.finished = 0;
     }
 
     public long getId() {
@@ -51,6 +53,14 @@ public class FileInfo implements Serializable{
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 
     public String getFileName() {
@@ -82,6 +92,7 @@ public class FileInfo implements Serializable{
         return "FileInfo{" +
                 "id=" + id +
                 ", url='" + url + '\'' +
+                ", filePath='" + filePath + '\'' +
                 ", fileName='" + fileName + '\'' +
                 ", length=" + length +
                 ", finished=" + finished +
@@ -99,6 +110,8 @@ public class FileInfo implements Serializable{
         if (length != fileInfo.length) return false;
         if (finished != fileInfo.finished) return false;
         if (url != null ? !url.equals(fileInfo.url) : fileInfo.url != null) return false;
+        if (filePath != null ? !filePath.equals(fileInfo.filePath) : fileInfo.filePath != null)
+            return false;
         return fileName != null ? fileName.equals(fileInfo.fileName) : fileInfo.fileName == null;
 
     }
@@ -107,6 +120,7 @@ public class FileInfo implements Serializable{
     public int hashCode() {
         int result = (int) (id ^ (id >>> 32));
         result = 31 * result + (url != null ? url.hashCode() : 0);
+        result = 31 * result + (filePath != null ? filePath.hashCode() : 0);
         result = 31 * result + (fileName != null ? fileName.hashCode() : 0);
         result = 31 * result + (int) (length ^ (length >>> 32));
         result = 31 * result + (int) (finished ^ (finished >>> 32));
