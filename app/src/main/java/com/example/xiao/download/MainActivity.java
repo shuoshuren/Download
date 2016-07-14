@@ -107,21 +107,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.start:
                 manager.startDownload(apkInfo);
 //                manager.startDownload(bundleInfo);
-//                manager.startDownload(logoInfo);
+                manager.startDownload(logoInfo);
                 manager.startDownload(youdaoApkInfo);
                 break;
 
             case R.id.stop:
                 manager.stopDownload(apkInfo);
 //                manager.stopDownload(bundleInfo);
-//                manager.stopDownload(logoInfo);
+                manager.stopDownload(logoInfo);
                 manager.stopDownload(youdaoApkInfo);
                 break;
 
             case R.id.restart:
                 manager.restartDownload(apkInfo);
 //                manager.restartDownload(bundleInfo);
-//                manager.restartDownload(logoInfo);
+                manager.restartDownload(logoInfo);
                 manager.restartDownload(youdaoApkInfo);
                 break;
             default:

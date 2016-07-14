@@ -155,6 +155,17 @@ public class MyDownloadManager {
     }
 
     /**
+     * 停止下载文件
+     * @param fileId
+     */
+    public void stopDownload(long fileId){
+        if(downloadService != null){
+            Log.i("xc","停止下载");
+            downloadService.stopDownload(fileId);
+        }
+    }
+
+    /**
      * 重新下载该文件，从之前暂停的地方开始下载
      * @param fileInfo
      */
@@ -212,7 +223,6 @@ public class MyDownloadManager {
                 if(listener!= null){
                     listener.onFileNotFind(fileId);
                 }
-
                 if(fileInfoDao.isExists(url,fileId)){
                     fileInfoDao.deleteFileInfo(url);
                 }
@@ -224,7 +234,7 @@ public class MyDownloadManager {
                 if(listener!= null){
                     listener.onNetError(fileId);
                 }
-                stopAllDownload();
+                stopDownload(fileId);
             }else if(action.equals(ConnectivityManager.CONNECTIVITY_ACTION)){
                 ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
                 NetworkInfo wifiInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);

@@ -73,6 +73,17 @@ public class DownloadService extends Service {
     }
 
     /**
+     * 停止文件的下载
+     * @param fileId
+     */
+    public void stopDownload(long fileId){
+        DownloadTask task = tasks.get(fileId);
+        if(task != null){
+            task.isPause = true;
+        }
+    }
+
+    /**
      * 停止所有的下载
      */
     public void stopAllDownload(){
