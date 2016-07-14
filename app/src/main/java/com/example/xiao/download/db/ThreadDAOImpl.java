@@ -23,27 +23,27 @@ public class ThreadDAOImpl implements ThreadDAO {
 
     @Override
     public synchronized void insertThread(ThreadInfo threadInfo) {
-        SQLiteDatabase db = mHelper.getWritableDatabase();
+        SQLiteDatabase db = mHelper.openDatabase();
         db.execSQL("insert into thread_info(thread_id,url,start,end,finished) values(?,?,?,?,?)",
                 new Object[]{threadInfo.getId(), threadInfo.getUrl(),
                         threadInfo.getStart(), threadInfo.getEnd(), threadInfo.getFinished()});
-        db.close();
+        mHelper.closeDatabase();
     }
 
     @Override
     public synchronized void deleteThread(String url) {
-        SQLiteDatabase db = mHelper.getWritableDatabase();
+        SQLiteDatabase db = mHelper.openDatabase();
         db.execSQL("delete from thread_info where url = ?",
                 new Object[]{url});
-        db.close();
+        mHelper.closeDatabase();
     }
 
     @Override
     public synchronized void updateThread(String url, int thread_id, long finished) {
-        SQLiteDatabase db = mHelper.getWritableDatabase();
+        SQLiteDatabase db = mHelper.openDatabase();
         db.execSQL("update thread_info set finished = ? where url = ? and thread_id = ?",
                 new Object[]{finished, url, thread_id});
-        db.close();
+        mHelper.closeDatabase();
     }
 
     @Override
@@ -51,7 +51,7 @@ public class ThreadDAOImpl implements ThreadDAO {
 
         List<ThreadInfo> list = new ArrayList<ThreadInfo>();
 
-        SQLiteDatabase db = mHelper.getReadableDatabase();
+        SQLiteDatabase db = mHelper.openDatabase();
         Cursor cursor = db.rawQuery("select * from thread_info where url = ?", new String[]{url});
         while (cursor.moveToNext())
         {
@@ -64,20 +64,20 @@ public class ThreadDAOImpl implements ThreadDAO {
             list.add(threadInfo);
         }
         cursor.close();
-        db.close();
+        mHelper.closeDatabase();
         return list;
     }
 
     @Override
     public synchronized boolean isExists(String url, int thread_id) {
         boolean exists =false;
-        SQLiteDatabase db = mHelper.getReadableDatabase();
+        SQLiteDatabase db = mHelper.openDatabase();
         Cursor cursor = db.rawQuery("select * from thread_info where url = ? and thread_id = ?", new String[]{url, thread_id+""});
         if (cursor.getCount() > 0) {
             exists = true;
         }
         cursor.close();
-        db.close();
+        mHelper.closeDatabase();
         return exists;
     }
 }

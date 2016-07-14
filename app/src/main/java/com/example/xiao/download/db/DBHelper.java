@@ -4,6 +4,8 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * 数据库的操作类
  * Created by xiao on 2016/7/11.
@@ -23,15 +25,44 @@ public class DBHelper extends SQLiteOpenHelper {
 
     private static DBHelper sDbHelper = null;
 
+    private AtomicInteger mOpenCounter = new AtomicInteger();
+
+    private SQLiteDatabase mDatabase;
+
     private DBHelper(Context context){
         super(context,DB_NAME,null,VERSION);
     }
 
     public static DBHelper getInstance(Context context){
         if(sDbHelper == null){
-            sDbHelper = new DBHelper(context);
+            synchronized (DBHelper.class){
+                if(sDbHelper == null){
+                    sDbHelper = new DBHelper(context);
+                }
+            }
         }
         return sDbHelper;
+    }
+
+    //打开数据库方法
+    public synchronized SQLiteDatabase openDatabase() {
+        if (mOpenCounter.incrementAndGet() == 1) {//incrementAndGet会让mOpenCounter自动增长1
+            // Opening new database
+            try {
+                mDatabase = sDbHelper.getWritableDatabase();
+            } catch (Exception e) {
+                mDatabase = sDbHelper.getReadableDatabase();
+            }
+        }
+        return mDatabase;
+    }
+
+    //关闭数据库方法
+    public synchronized void closeDatabase() {
+        if (mOpenCounter.decrementAndGet() == 0) {//decrementAndGet会让mOpenCounter自动减1
+            // Closing database
+            mDatabase.close();
+        }
     }
 
     @Override

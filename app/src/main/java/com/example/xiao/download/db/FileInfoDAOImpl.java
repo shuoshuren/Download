@@ -23,33 +23,33 @@ public class FileInfoDAOImpl implements FileInfoDAO {
 
     @Override
     public synchronized void insertFileInfo(FileInfo fileInfo) {
-        SQLiteDatabase db = mHelper.getWritableDatabase();
+        SQLiteDatabase db = mHelper.openDatabase();
         db.execSQL("insert into file_info(file_id,url,file_name,length,finished) values(?,?,?,?,?)",
                 new Object[]{fileInfo.getId(), fileInfo.getUrl(),
                         fileInfo.getFileName(), fileInfo.getLength(), fileInfo.getFinished()});
-        db.close();
+        mHelper.closeDatabase();
     }
 
     @Override
     public synchronized void deleteFileInfo(String url) {
-        SQLiteDatabase db = mHelper.getWritableDatabase();
+        SQLiteDatabase db = mHelper.openDatabase();
         db.execSQL("delete from file_info where url = ?",
                 new Object[]{url});
-        db.close();
+        mHelper.closeDatabase();
     }
 
     @Override
     public synchronized void updateFileInfo(String url, long file_id, long finished) {
-        SQLiteDatabase db = mHelper.getWritableDatabase();
+        SQLiteDatabase db = mHelper.openDatabase();
         db.execSQL("update file_info set finished = ? where url = ? and file_id = ?",
                 new Object[]{finished, url, file_id});
-        db.close();
+        mHelper.closeDatabase();
     }
 
     @Override
     public synchronized List<FileInfo> getFiles(String url) {
         List<FileInfo> list = new ArrayList<FileInfo>();
-        SQLiteDatabase db = mHelper.getReadableDatabase();
+        SQLiteDatabase db = mHelper.openDatabase();
         Cursor cursor = db.rawQuery("select * from file_info where url = ?", new String[]{url});
         while (cursor.moveToNext())
         {
@@ -62,14 +62,14 @@ public class FileInfoDAOImpl implements FileInfoDAO {
             list.add(fileInfo);
         }
         cursor.close();
-        db.close();
+        mHelper.closeDatabase();
         return list;
     }
 
     @Override
     public synchronized List<FileInfo> getAllFileInfo() {
         List<FileInfo> list = new ArrayList<FileInfo>();
-        SQLiteDatabase db = mHelper.getReadableDatabase();
+        SQLiteDatabase db = mHelper.openDatabase();
         Cursor cursor = db.rawQuery("select * from file_info where 1 = 1", null);
         while (cursor.moveToNext())
         {
@@ -82,20 +82,20 @@ public class FileInfoDAOImpl implements FileInfoDAO {
             list.add(fileInfo);
         }
         cursor.close();
-        db.close();
+        mHelper.closeDatabase();
         return list;
     }
 
     @Override
     public synchronized boolean isExists(String url, long file_id) {
         boolean isExists = false;
-        SQLiteDatabase db = mHelper.getReadableDatabase();
+        SQLiteDatabase db = mHelper.openDatabase();
         Cursor cursor = db.rawQuery("select * from file_info where url = ? and file_id = ?", new String[]{url, file_id+""});
         if(cursor.getCount()>0){
             isExists = true;
         }
         cursor.close();
-        db.close();
+        mHelper.closeDatabase();
         return isExists;
     }
 }
