@@ -2,6 +2,7 @@ package com.example.xiao.download;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -28,16 +29,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String baidu_logo_url = "http://www.baidu.com/img/bdlogo.gif";
     private static final String youdao_apk_url = "http://wap.apk.anzhi.com/data2/apk/201607/01/14c8103c8f28e175f45724b9cba5f930_87799500.apk";
 
+    private boolean debug = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if(debug){
+            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                    .detectLeakedSqlLiteObjects()
+                    .detectLeakedClosableObjects()
+                    .penaltyLog()
+                    .penaltyDeath()
+                    .build()
+            );
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         apkInfo = new FileInfo(System.currentTimeMillis(),url_downPApk,"test.apk",0,0);
         bundleInfo = new FileInfo(System.currentTimeMillis()+5,url_downBundle,"bundle.zip",0,0);
-        logoInfo = new FileInfo(System.currentTimeMillis(),baidu_logo_url,"logo.gif",0,0);
-        youdaoApkInfo = new FileInfo(System.currentTimeMillis(),youdao_apk_url,"youdao.apk",0,0);
+        logoInfo = new FileInfo(System.currentTimeMillis()+10,baidu_logo_url,"logo.gif",0,0);
+        youdaoApkInfo = new FileInfo(System.currentTimeMillis()+15,youdao_apk_url,"youdao.apk",0,0);
 
         manager = MyDownloadManager.getInstance(mContext);
         manager.setDownloadUnFinished(true);
@@ -80,6 +91,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Log.i("xc","文件不存在");
                 Toast.makeText(mContext,"文件不存在",Toast.LENGTH_LONG).show();
             }
+
+            @Override
+            public void onNetError(long fileId){
+                Log.i("xc","网络异常");
+                Toast.makeText(mContext,"网络异常",Toast.LENGTH_LONG).show();
+            }
         });
     }
 
@@ -91,21 +108,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 manager.startDownload(apkInfo);
 //                manager.startDownload(bundleInfo);
 //                manager.startDownload(logoInfo);
-//                manager.startDownload(youdaoApkInfo);
+                manager.startDownload(youdaoApkInfo);
                 break;
 
             case R.id.stop:
                 manager.stopDownload(apkInfo);
 //                manager.stopDownload(bundleInfo);
 //                manager.stopDownload(logoInfo);
-//                manager.stopDownload(youdaoApkInfo);
+                manager.stopDownload(youdaoApkInfo);
                 break;
 
             case R.id.restart:
                 manager.restartDownload(apkInfo);
 //                manager.restartDownload(bundleInfo);
 //                manager.restartDownload(logoInfo);
-//                manager.restartDownload(youdaoApkInfo);
+                manager.restartDownload(youdaoApkInfo);
                 break;
             default:
                 break;

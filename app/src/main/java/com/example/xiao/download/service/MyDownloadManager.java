@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -90,6 +92,8 @@ public class MyDownloadManager {
         filter.addAction(DownloadService.ACTION_UPDATE);
         filter.addAction(DownloadService.ACTION_FINISHED);
         filter.addAction(DownloadService.ACTION_FILE_NOT_FIND);
+        filter.addAction(DownloadService.ACTION_NET_ERROR);
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         mContext.registerReceiver(mReceiver, filter);
 
     }
@@ -162,6 +166,16 @@ public class MyDownloadManager {
     }
 
     /**
+     * 停止所有的下载
+     */
+    public void stopAllDownload(){
+        if(downloadService != null){
+            Log.i("xc","停止所有的下载");
+            downloadService.stopAllDownload();
+        }
+    }
+
+    /**
      * 接收广播
      * 主要接收每个线程下载的的进度通知和下载完成后的通知
      */
@@ -205,6 +219,24 @@ public class MyDownloadManager {
                 if(threadDao.getThreads(url).size()>0){
                     threadDao.deleteThread(url);
                 }
+            }else if(action.equals(DownloadService.ACTION_NET_ERROR)){
+                long fileId = intent.getLongExtra("id",-1);
+                if(listener!= null){
+                    listener.onNetError(fileId);
+                }
+                stopAllDownload();
+            }else if(action.equals(ConnectivityManager.CONNECTIVITY_ACTION)){
+                ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo wifiInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+                NetworkInfo mobileInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+                NetworkInfo activeInfo = connManager.getActiveNetworkInfo();
+                if(activeInfo != null){
+                    Log.i("xc","wifiInfo="+wifiInfo.isConnected()+" mobileInfo="+mobileInfo.isConnected()+" activeInfo="+activeInfo.getTypeName());
+                    downloadUnFinished();
+                }else{
+                    Log.i("xc","无网络");
+                    stopAllDownload();
+                }
             }
         }
     };
@@ -235,6 +267,12 @@ public class MyDownloadManager {
          * @param fileId
          */
         void onFileNotFind(long fileId);
+
+        /**
+         * 当网络出现异常时
+         * @param fileId
+         */
+        void onNetError(long fileId);
     }
 
     private DownloadListener listener;

@@ -34,6 +34,7 @@ public class DownloadService extends Service {
     public static final String ACTION_FINISHED = "ACTION_FINISHED";
     public static final String ACTION_RESTART = "ACTION_RESTART";
     public static final String ACTION_FILE_NOT_FIND = "ACTION_FILE_NOT_FIND";
+    public static final String ACTION_NET_ERROR = "ACTION_NET_ERROR";
     public static final int MSG_INIT = 0;
 
     //管理下载Task的HashMap
@@ -101,6 +102,7 @@ public class DownloadService extends Service {
      */
     public void downloadFinished(long fileId){
         if(tasks.containsKey(fileId)){
+            Log.i("xc","下载完成");
             tasks.remove(fileId);
         }
     }
@@ -159,6 +161,7 @@ public class DownloadService extends Service {
                 mFileInfo.setLength(length);
                 mHandler.obtainMessage(MSG_INIT,mFileInfo).sendToTarget();
             }catch(Exception e){
+                sendNetError();
                 e.printStackTrace();
             }finally {
                 try{
@@ -183,6 +186,16 @@ public class DownloadService extends Service {
             intent.setAction(DownloadService.ACTION_START);
             intent.putExtra("id",mFileInfo.getId());
             intent.putExtra("length",length);
+            mContext.sendBroadcast(intent);
+        }
+
+        /**
+         * 发送网络错误的广播
+         */
+        private void sendNetError(){
+            Intent intent = new Intent();
+            intent.setAction(DownloadService.ACTION_NET_ERROR);
+            intent.putExtra("id",mFileInfo.getId());
             mContext.sendBroadcast(intent);
         }
 

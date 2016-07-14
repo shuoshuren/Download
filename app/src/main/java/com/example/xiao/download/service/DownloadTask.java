@@ -184,6 +184,7 @@ public class DownloadTask {
                 setFinished(true);
                 checkAllFinished();
             } catch (Exception e) {
+                sendNetError();
                 e.printStackTrace();
             } finally {
                 try {
@@ -219,6 +220,16 @@ public class DownloadTask {
         public int hashCode() {
             return mThreadInfo != null ? mThreadInfo.hashCode() : 0;
         }
+    }
+
+    /**
+     * 发送网络错误的广播
+     */
+    private void sendNetError(){
+        Intent intent = new Intent();
+        intent.setAction(DownloadService.ACTION_NET_ERROR);
+        intent.putExtra("id",mFileInfo.getId());
+        mContext.sendBroadcast(intent);
     }
 
     /**
