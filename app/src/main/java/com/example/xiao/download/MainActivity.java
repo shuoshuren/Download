@@ -1,16 +1,23 @@
 package com.example.xiao.download;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import com.example.xiao.download.entity.FileInfo;
 import com.example.xiao.download.service.MyDownloadManager;
+
+import static android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -72,18 +79,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onStart(long fileId,long length){
-                Log.i("xc","fileId="+fileId+" 长度="+length);
+                Log.i("xc","fileInfo="+fileId+" length="+length);
+
             }
 
             @Override
             public void onProgressUpdate(long fileId,long threadId,long progress) {
                 Log.i("xc","进度 fileid="+fileId +" 线程="+threadId +" progress="+progress);
+
             }
 
             @Override
             public void onFinished(long fileId) {
                 Log.i("xc","已完成 fileId="+fileId);
                 Toast.makeText(mContext,"已经完成",Toast.LENGTH_LONG).show();
+
             }
 
             @Override
@@ -98,6 +108,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(mContext,"网络异常",Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    private void showNotification(long fileId,String fileName,long size,long finished) {
+        NotificationManager notiManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        Notification.Builder notifyBuilder = new Notification.Builder(mContext);
+
+        RemoteViews rv = new RemoteViews(getPackageName(),R.layout.download_notification);
+        rv.setTextViewText(R.id.file_name,"text");
+        rv.setTextViewText(R.id.file_control,"暂停");
+        rv.setTextViewText(R.id.file_size,"300k");
+        rv.setTextViewText(R.id.file_finished,"200k");
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+        notifyBuilder.setSmallIcon(R.mipmap.ic_launcher)
+//                .setTicker("您有新任务了，请注意接收！")
+                .setContentTitle("下载"+fileName)
+//                .setContent(rv)
+                .setContentText("文件大小："+size)
+                .setProgress(100,(int)finished,false)
+                .setContentIntent(pendingIntent);
+        Notification notification = notifyBuilder.build();
+        notification.flags = Notification.FLAG_ONGOING_EVENT;
+        notification.defaults = Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE;
+        notification.when = System.currentTimeMillis();
+        notiManager.notify((int)fileId, notification);
+
     }
 
 

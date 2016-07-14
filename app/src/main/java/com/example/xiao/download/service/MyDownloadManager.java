@@ -187,6 +187,18 @@ public class MyDownloadManager {
     }
 
     /**
+     * 获取下载文件信息
+     * @param fileId
+     * @return
+     */
+    public FileInfo getDownloadFileInfo(long fileId){
+        if(downloadService != null){
+            return downloadService.getDownloadFileInfo(fileId);
+        }
+        return null;
+    }
+
+    /**
      * 接收广播
      * 主要接收每个线程下载的的进度通知和下载完成后的通知
      */

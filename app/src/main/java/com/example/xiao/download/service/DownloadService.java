@@ -39,6 +39,7 @@ public class DownloadService extends Service {
 
     //管理下载Task的HashMap
     private HashMap<Long,DownloadTask> tasks = new HashMap<>();
+    private HashMap<Long,FileInfo> infoMap = new HashMap<>();
 
     @Override
     public void onCreate() {
@@ -119,6 +120,18 @@ public class DownloadService extends Service {
     }
 
     /**
+     * 获取下载文件信息
+     * @param fileId
+     * @return
+     */
+    public FileInfo getDownloadFileInfo(long fileId){
+        if(infoMap.containsKey(fileId)){
+            return infoMap.get(fileId);
+        }
+        return null;
+    }
+
+    /**
      * 初始化文件的线程
      * 主要是得到下载文件的长度和创建文件夹目录和文件
      */
@@ -147,8 +160,6 @@ public class DownloadService extends Service {
 //                }
                 Log.i("xc","responseCode="+connection.getResponseCode());
                 Log.i("xc", "length=" + length);
-
-                sendFileLength(length);
 
                 if(length ==0){ //如果文件长度为0
                     return;
@@ -188,17 +199,6 @@ public class DownloadService extends Service {
             }
         }
 
-        /**
-         * 发送文件长度的广播
-         * @param length
-         */
-        private void sendFileLength(long length) {
-            Intent intent  = new Intent();
-            intent.setAction(DownloadService.ACTION_START);
-            intent.putExtra("id",mFileInfo.getId());
-            intent.putExtra("length",length);
-            mContext.sendBroadcast(intent);
-        }
 
         /**
          * 发送网络错误的广播
@@ -228,6 +228,18 @@ public class DownloadService extends Service {
         }
     }
 
+    /**
+     * 发送文件长度的广播
+     * @param fileInfo
+     */
+    private void sendFileLength(FileInfo fileInfo) {
+        Intent intent  = new Intent();
+        intent.setAction(DownloadService.ACTION_START);
+        intent.putExtra("id",fileInfo.getId());
+        intent.putExtra("length",fileInfo.getLength());
+        mContext.sendBroadcast(intent);
+    }
+
     private Handler mHandler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -237,6 +249,8 @@ public class DownloadService extends Service {
                     DownloadTask task = new DownloadTask(DownloadService.this,fileInfo,3);
                     task.download();
                     tasks.put(fileInfo.getId(),task);
+                    infoMap.put(fileInfo.getId(),fileInfo);
+                    sendFileLength(fileInfo);
                     break;
 
                 default:
