@@ -10,6 +10,7 @@ import com.example.xiao.download.db.ThreadDAO;
 import com.example.xiao.download.db.ThreadDAOImpl;
 import com.example.xiao.download.entity.FileInfo;
 import com.example.xiao.download.entity.ThreadInfo;
+import com.example.xiao.download.util.PathUtil;
 
 import java.io.File;
 import java.io.InputStream;
@@ -33,6 +34,8 @@ public class DownloadTask {
     private List<DownloadThread> mDownloadThreadList = null;
     public boolean isPause = false;
 
+    private String downloadPath;
+
     /**
      *
      * @param context 上下文
@@ -43,8 +46,10 @@ public class DownloadTask {
         this.mContext = context;
         this.mFileInfo = fileInfo;
         this.mThreadCount = threadCount;
+        this.downloadPath = PathUtil.getDownloadPath(mContext);
         threadDAO = new ThreadDAOImpl(context);
         fileInfoDAO = new FileInfoDAOImpl(context);
+
     }
 
     public void download() {
@@ -93,7 +98,7 @@ public class DownloadTask {
      * 判断文件是否存在
      */
     private boolean checkFileExists() {
-        File file = new File(DownloadService.DOWNLOAD_PATH, mFileInfo.getFileName());
+        File file = new File(downloadPath, mFileInfo.getFileName());
         if(!file.exists()){
             Intent intent = new Intent();
             intent.setAction(DownloadService.ACTION_FILE_NOT_FIND);
@@ -145,7 +150,7 @@ public class DownloadTask {
                 }
 
                 //通过RandomAccessFile进行随机文件的读写操作
-                File file = new File(DownloadService.DOWNLOAD_PATH, mFileInfo.getFileName());
+                File file = new File(downloadPath, mFileInfo.getFileName());
                 raf = new RandomAccessFile(file, "rwd");
                 raf.seek(start);
 

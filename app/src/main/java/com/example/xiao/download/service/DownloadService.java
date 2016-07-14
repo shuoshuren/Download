@@ -11,6 +11,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.example.xiao.download.entity.FileInfo;
+import com.example.xiao.download.util.PathUtil;
 
 import java.io.File;
 import java.io.RandomAccessFile;
@@ -26,7 +27,7 @@ public class DownloadService extends Service {
     private Context mContext;
     private String TAG = "DownloadService";
     //文件下载的存放目录
-    public static final String DOWNLOAD_PATH = Environment
+    public String downloadPath = Environment
             .getExternalStorageDirectory().getAbsolutePath() + "/downloads/";
     public static final String ACTION_START = "ACTION_START";
     public static final String ACTION_STOP = "ACTION_STOP";
@@ -45,6 +46,7 @@ public class DownloadService extends Service {
     public void onCreate() {
         super.onCreate();
         this.mContext = DownloadService.this;
+        this.downloadPath = PathUtil.getDownloadPath(mContext);
     }
 
     @Override
@@ -164,7 +166,7 @@ public class DownloadService extends Service {
                 if(length ==0){ //如果文件长度为0
                     return;
                 }
-                File dir = new File(DOWNLOAD_PATH);
+                File dir = new File(downloadPath);
                 if (!dir.exists()) {
                     dir.mkdir();
                 }
@@ -215,7 +217,7 @@ public class DownloadService extends Service {
          * 判断文件是否存在
          */
         private boolean checkFileExists() {
-            File file = new File(DownloadService.DOWNLOAD_PATH, mFileInfo.getFileName());
+            File file = new File(downloadPath, mFileInfo.getFileName());
             if(!file.exists()){
                 Intent intent = new Intent();
                 intent.setAction(DownloadService.ACTION_FILE_NOT_FIND);
