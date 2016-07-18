@@ -1,5 +1,8 @@
 package com.example.xiao.download.service;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -11,13 +14,18 @@ import android.net.NetworkInfo;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.example.xiao.download.MainActivity;
+import com.example.xiao.download.R;
 import com.example.xiao.download.db.FileInfoDAO;
 import com.example.xiao.download.db.FileInfoDAOImpl;
 import com.example.xiao.download.db.ThreadDAO;
 import com.example.xiao.download.db.ThreadDAOImpl;
 import com.example.xiao.download.entity.FileInfo;
+import com.example.xiao.download.util.SizeUtil;
 
 import java.util.List;
+
+import static android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP;
 
 /**
  * 下载的manager
@@ -32,6 +40,8 @@ public class MyDownloadManager {
 
     private boolean isDownloadUnFinished = false; //是否自动开始以前的未完成的任务
 
+    private boolean isShowNotification = true; //是否在通知栏中显示下载信息
+
     private FileInfoDAO fileInfoDao;
     private ThreadDAO threadDao;
 
@@ -41,6 +51,14 @@ public class MyDownloadManager {
 
     public void setDownloadUnFinished(boolean downloadUnFinished) {
         isDownloadUnFinished = downloadUnFinished;
+    }
+
+    public boolean isShowNotification() {
+        return isShowNotification;
+    }
+
+    public void setShowNotification(boolean showNotification) {
+        isShowNotification = showNotification;
     }
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -236,7 +254,12 @@ public class MyDownloadManager {
                 long threadId = intent.getLongExtra("threadId", -1);
                 if (listener != null) {
                     listener.onProgressUpdate(fileId, threadId, progress);
-
+                }
+                if(isShowNotification){
+                    FileInfo fileInfo = getDownloadFileInfo(fileId);
+                    FileProgressManager manager = FileProgressManager.getInstance(fileId,threadId,progress);
+                    long allProgress = manager.getProgress(fileId);
+                    showProgressNotification(fileId,fileInfo.getFileName(),allProgress);
                 }
             } else if (action.equals(DownloadService.ACTION_FINISHED)) {
                 long fileId = intent.getLongExtra("id", -1);
@@ -245,6 +268,10 @@ public class MyDownloadManager {
                 }
                 if (downloadService != null) {
                     downloadService.downloadFinished(fileId);
+                }
+                if(isShowNotification){
+                    FileInfo fileInfo = getDownloadFileInfo(fileId);
+                    showFinishedNotification(fileInfo.getId(),fileInfo.getFileName());
                 }
             } else if (action.equals(DownloadService.ACTION_FILE_NOT_FIND)) {
                 long fileId = intent.getLongExtra("id", -1);
@@ -279,6 +306,45 @@ public class MyDownloadManager {
             }
         }
     };
+
+    private void showFinishedNotification(long fileId, String fileName) {
+        NotificationManager notiManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        Notification.Builder notifyBuilder = new Notification.Builder(mContext);
+        Intent intent = new Intent(mContext, MainActivity.class);
+        intent.setFlags(FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, intent, 0);
+        notifyBuilder.setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle("下载"+fileName)
+                .setContentText("下载已完成")
+                .setAutoCancel(true)
+                .setOnlyAlertOnce(true)
+                .setContentIntent(pendingIntent);
+        Notification notification = notifyBuilder.build();
+        notification.flags = Notification.FLAG_ONGOING_EVENT;
+        notification.defaults = Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE;
+        notification.when = System.currentTimeMillis();
+        notiManager.notify((int)fileId, notification);
+    }
+
+    private void showProgressNotification(long fileId,String fileName,long finished) {
+        NotificationManager notiManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        Notification.Builder notifyBuilder = new Notification.Builder(mContext);
+
+        Intent intent = new Intent(mContext, MainActivity.class);
+        intent.setFlags(FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, intent, 0);
+        notifyBuilder.setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle("下载"+fileName)
+                .setContentText("已下载："+ SizeUtil.getSize(finished))
+                .setOnlyAlertOnce(true)
+                .setContentIntent(pendingIntent);
+        Notification notification = notifyBuilder.build();
+        notification.flags = Notification.FLAG_ONGOING_EVENT;
+        notification.defaults = Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE;
+        notification.when = System.currentTimeMillis();
+        notiManager.notify((int)fileId, notification);
+
+    }
 
     /**
      * 下载过程中的监听器

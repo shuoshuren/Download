@@ -1,24 +1,17 @@
 package com.example.xiao.download;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import com.example.xiao.download.entity.FileInfo;
 import com.example.xiao.download.service.MyDownloadManager;
 import com.example.xiao.download.util.PathUtil;
-
-import static android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -62,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         manager = MyDownloadManager.getInstance(mContext);
         manager.setDownloadUnFinished(true);
+        manager.setShowNotification(true);
         initView();
         initEvent();
 
@@ -88,9 +82,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onProgressUpdate(long fileId,long threadId,long progress) {
-                Log.i("xc","进度 fileid="+fileId +" 线程="+threadId +" progress="+progress);
+//                Log.i("xc","进度 fileid="+fileId +" 线程="+threadId +" progress="+progress);
                 FileInfo fileInfo = manager.getDownloadFileInfo(fileId);
-                showNotification(fileId,fileInfo.getFileName(),fileInfo.getLength(),progress);
+//                long allProgress = 0;
+//                FileProgressManager manager = FileProgressManager.getInstance(fileId,threadId,progress);
+//                allProgress = manager.getProgress(fileId);
+//                showNotification(fileId,fileInfo.getFileName(),fileInfo.getLength(),allProgress);
+
             }
 
             @Override
@@ -114,34 +112,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    private void showNotification(long fileId,String fileName,long size,long finished) {
-        NotificationManager notiManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
-        Notification.Builder notifyBuilder = new Notification.Builder(mContext);
-
-        RemoteViews rv = new RemoteViews(getPackageName(),R.layout.download_notification);
-        rv.setTextViewText(R.id.file_name,"text");
-        rv.setTextViewText(R.id.file_control,"暂停");
-        rv.setTextViewText(R.id.file_size,"300k");
-        rv.setTextViewText(R.id.file_finished,"200k");
-
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-        notifyBuilder.setSmallIcon(R.mipmap.ic_launcher)
-//                .setTicker("您有新任务了，请注意接收！")
-                .setContentTitle("下载"+fileName)
-//                .setContent(rv)
-                .setContentText("文件大小："+size)
-                .setProgress(100,(int)finished,false)
-                .setContentIntent(pendingIntent);
-        Notification notification = notifyBuilder.build();
-        notification.flags = Notification.FLAG_ONGOING_EVENT;
-        notification.defaults = Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE;
-        notification.when = System.currentTimeMillis();
-        notiManager.notify((int)fileId, notification);
-
-    }
-
 
     @Override
     public void onClick(View v) {
@@ -149,21 +119,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.start:
                 manager.startDownload(apkInfo);
 //                manager.startDownload(bundleInfo);
-//                manager.startDownload(logoInfo);
+                manager.startDownload(logoInfo);
                 manager.startDownload(youdaoApkInfo);
                 break;
 
             case R.id.stop:
                 manager.stopDownload(apkInfo);
 //                manager.stopDownload(bundleInfo);
-//                manager.stopDownload(logoInfo);
+                manager.stopDownload(logoInfo);
                 manager.stopDownload(youdaoApkInfo);
                 break;
 
             case R.id.restart:
                 manager.restartDownload(apkInfo);
 //                manager.restartDownload(bundleInfo);
-//                manager.restartDownload(logoInfo);
+                manager.restartDownload(logoInfo);
                 manager.restartDownload(youdaoApkInfo);
                 break;
             default:
