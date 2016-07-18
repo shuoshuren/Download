@@ -159,12 +159,7 @@ public class DownloadTask {
                 int len = -1;
                 long time = System.currentTimeMillis();
                 while ((len = inputStream.read(buffer)) != -1) {
-                    // 在下载暂停时，保存下载进度，退出下载线程
-                    if (isPause) {
-                        Log.i("xc", "pause finish=" + mThreadInfo.getFinished());
-                        threadDAO.updateThread(mThreadInfo.getUrl(), mThreadInfo.getId(), mThreadInfo.getFinished());
-                        return;
-                    }
+
 
                     raf.write(buffer, 0, len);
                     mThreadInfo.setFinished(mThreadInfo.getFinished()+len);
@@ -177,7 +172,14 @@ public class DownloadTask {
                             intent.putExtra("id", mFileInfo.getId());
                             intent.putExtra("threadId",currentThread().getId());
                             mContext.sendBroadcast(intent);
+                        threadDAO.updateThread(mThreadInfo.getUrl(), mThreadInfo.getId(), mThreadInfo.getFinished());
 //                        }
+                    }
+                    // 在下载暂停时，保存下载进度，退出下载线程
+                    if (isPause) {
+                        Log.i("xc", "pause finish=" + mThreadInfo.getFinished());
+                        threadDAO.updateThread(mThreadInfo.getUrl(), mThreadInfo.getId(), mThreadInfo.getFinished());
+                        return;
                     }
                 }
                 //文件下载完成

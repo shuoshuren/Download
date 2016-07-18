@@ -113,6 +113,8 @@ public class MyDownloadManager {
             downloadService.stopAllDownload();
             mContext.unbindService(connection);
             connection = null;
+        }else{
+            throw new RuntimeException("DownloadService 没有被绑定");
         }
 
     }
@@ -140,6 +142,8 @@ public class MyDownloadManager {
         if (downloadService != null) {
             Log.i("xc", "开始下载");
             downloadService.startDownload(fileInfo, true);
+        }else{
+            throw new RuntimeException("DownloadService 没有被绑定");
         }
     }
 
@@ -152,6 +156,8 @@ public class MyDownloadManager {
         if (downloadService != null) {
             Log.i("xc", "停止下载");
             downloadService.stopDownload(fileInfo);
+        }else{
+            throw new RuntimeException("DownloadService 没有被绑定");
         }
     }
 
@@ -164,6 +170,8 @@ public class MyDownloadManager {
         if (downloadService != null) {
             Log.i("xc", "停止下载");
             downloadService.stopDownload(fileId);
+        }else{
+            throw new RuntimeException("DownloadService 没有被绑定");
         }
     }
 
@@ -176,6 +184,8 @@ public class MyDownloadManager {
         if (downloadService != null) {
             Log.i("xc", "重新开始下载");
             downloadService.restartDownload(fileInfo);
+        }else{
+            throw new RuntimeException("DownloadService 没有被绑定");
         }
     }
 
@@ -186,6 +196,8 @@ public class MyDownloadManager {
         if (downloadService != null) {
             Log.i("xc", "停止所有的下载");
             downloadService.stopAllDownload();
+        }else{
+            throw new RuntimeException("DownloadService 没有被绑定");
         }
     }
 
